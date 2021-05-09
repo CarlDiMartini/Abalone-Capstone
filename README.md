@@ -1,3 +1,3 @@
 # Abalone-Capstone
 Access 'Abalone Analysis' first.
-The EDA and machine learning components are broken out into separate notebooks.
+The EDA is broken out into a separate notebook.
