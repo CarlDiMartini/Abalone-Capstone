@@ -1,0 +1,120 @@
+
+classification_report for y_test_10, y_pred_10 via random forest classifier:
+
+              precision    recall  f1-score   support
+
+       False       0.82      0.74      0.78       691
+        True       0.76      0.84      0.80       686
+
+    accuracy                           0.79      1377
+   macro avg       0.79      0.79      0.79      1377
+weighted avg       0.79      0.79      0.79      1377
+
+
+classification_report for y_test_reg, y_pred_15 via random forest regressor:
+              precision    recall  f1-score   support
+
+       False       0.51      1.00      0.67       681
+        True       1.00      0.05      0.10       696
+
+    accuracy                           0.52      1377
+   macro avg       0.75      0.53      0.39      1377
+weighted avg       0.76      0.52      0.39      1377
+
+
+classification_report for y_test_reg, y_pred_14 via random forest regressor:
+              precision    recall  f1-score   support
+
+       False       0.52      1.00      0.69       681
+        True       0.99      0.11      0.19       696
+
+    accuracy                           0.55      1377
+   macro avg       0.75      0.55      0.44      1377
+weighted avg       0.76      0.55      0.44      1377
+
+There were two random forest statistical models used here, a classifier and a regressor, both with Bayesian hyperparameter tuning.
+
+classifier:
+
+def input_validator_class(X, y):
+    global y_test
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
+    scaler_object = StandardScaler()
+    scaler_object.fit(X_train)
+    X_train = scaler_object.transform(X_train)
+    X_test = scaler_object.transform(X_test)
+    
+    def objective(params):
+        global y_pred, probs
+        n_estimators = params[0]
+        max_features = params[1]
+        min_samples_split = params[2]
+        bootstrap = params[3]
+        min_samples_leaf = params[4]
+        max_depth = params[5]
+    
+        model = RandomForestClassifier\
+        (\
+         n_jobs=-1, random_state=0, n_estimators = n_estimators,\
+         max_features = params[1],\
+         min_samples_split = params[2],\
+         bootstrap = params[3],\
+         min_samples_leaf = params[4],\
+         max_depth = params[5]\
+        )
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        probs = model.predict_proba(X_test)
+        return -metrics.accuracy_score(y_test, y_pred)
+    space = [\
+        [i for i in range(10,120,10)],                     #n_estimators                
+        ["auto", "sqrt", "log2"],                          #max_features
+        [2,4,8],                                           #min_samples_split
+        [True, False],                                     #bootstrap
+        [1, 2, 4],                                         #min_samples_leaf
+        [i for i in range(10,120,10)]                      #max_depth
+        ]
+    
+    return gp_minimize(objective, space, n_calls=50, random_state=0)
+
+regressor:
+
+def input_validator(X, y):
+    global y_test
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33)
+    scaler_object = StandardScaler()
+    scaler_object.fit(X_train)
+    X_train = scaler_object.transform(X_train)
+    X_test = scaler_object.transform(X_test)
+    
+    def objective(params):
+        global y_pred
+        n_estimators = params[0]
+        max_features = params[1]
+        min_samples_split = params[2]
+        bootstrap = params[3]
+        min_samples_leaf = params[4]
+        max_depth = params[5]
+    
+        model = RandomForestRegressor\
+        (\
+         n_jobs=-1, random_state=0, n_estimators = n_estimators,\
+         max_features = params[1],\
+         min_samples_split = params[2],\
+         bootstrap = params[3],\
+         min_samples_leaf = params[4],\
+         max_depth = params[5]\
+        )
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        return -metrics.r2_score(y_test, y_pred)
+    space = [\
+        [i for i in range(10,120,10)],                     #n_estimators                
+        ["auto", "sqrt", "log2"],                          #max_features
+        [2,4,8],                                           #min_samples_split
+        [True, False],                                     #bootstrap
+        [1, 2, 4],                                         #min_samples_leaf
+        [i for i in range(10,120,10)]                      #max_depth
+        ]
+    
+    return gp_minimize(objective, space, n_calls=50, random_state=0)
